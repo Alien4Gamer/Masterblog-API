@@ -71,7 +71,7 @@ def update_post(post_id):
     if post is None:
         return jsonify({"error": f"Post with id {post_id} not found."}), 404
 
-    # Titel und Inhalt optional updaten, sonst alte Werte behalten
+    # Update title and content optionally; otherwise, keep existing values.
     title = data.get("title", post["title"])
     content = data.get("content", post["content"])
 
@@ -92,6 +92,27 @@ def search_posts():
     ]
 
     return jsonify(matching_posts), 200
+
+@app.route('/api/posts/sorted', methods=['GET'])
+def sort_posts():
+    sort_field = request.args.get('sort')
+    direction = request.args.get('direction', 'asc')
+
+    valid_sort_fields = ['title', 'content']
+    valid_directions = ['asc', 'desc']
+
+    if sort_field:
+        if sort_field not in valid_sort_fields:
+            return jsonify({"error": f"Invalid sort field: '{sort_field}'"}), 400
+        if direction not in valid_directions:
+            return jsonify({"error": f"Invalid sort direction: '{direction}'"}), 400
+
+        reverse = direction == 'desc'
+        sorted_posts = sorted(POSTS, key=lambda post: post[sort_field].lower(), reverse=reverse)
+        return jsonify(sorted_posts), 200
+
+    # Fallback: return unsorted if no sort param is given
+    return jsonify(POSTS), 200
 
 
 if __name__ == '__main__':
